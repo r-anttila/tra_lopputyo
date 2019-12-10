@@ -80,7 +80,7 @@ def dijkstra(graph):
 
         for (vert, weight) in graph.adj[min_index]:
             vert_index = vert - 1
-
+ 
             if min_height < dist[vert_index][0]:
                 dist[vert_index][0] = min_height
                 dist[vert_index][1] = list(dist[min_index][1])
