@@ -1,33 +1,73 @@
 
 class Graph:
-    def __init__(self, verts, adj, destination):
+    def __init__(self, verts, edges, destination):
         self.verts = verts
-        self.adj = adj
+        self.edges = edges
+        self.edges.sort(key=lambda x: x[1])
         self.destination = destination
-        
+
+    def __str__(self):
+        return str(self.edges)
+
+
+class SetElement:
+    def __init__(self, content, rank, size):
+        self.content = content
+        self.parent = self
+        self.rank = rank
+        self.size = size
+
+    def __str__(self):
+        return str([self.content, self.parent.content])
+
+
+class DisjointSet:
+
+    def __init__(self):
+        self.sets = []
+
+    def make_set(self, x):
+        if x not in self.sets:
+            self.sets.append(SetElement(x, 0, 1))
+
+    def find(self, x):
+        root = x
+
+        while root.parent.content != root.content:
+            root = root.parent
+
+        while x.parent != root:
+            parent = x.parent
+            x.parent = root
+            x = parent
+
+        return root
+
+    def union(self, x, y):
+        x_root = self.find(x)
+        y_root = self.find(y)
+
+        if x_root == y_root:
+            return
+        elif x_root.rank < y_root.rank:
+            x_root, y_root = y_root, x_root
+
+        y_root.parent = x_root
+        if x_root.rank == y_root.rank:
+            x_root.rank = x_root.rank + 1
+
+    def __str__(self):
+        return str(self.sets)
 
 
 def graph_from_file(path_to_file):
     verts = []
+    edges = []
 
     with open(path_to_file, 'r') as file:
         lines = file.readlines()
         no_verts_and_edges = lines.pop(0).split()
-        no_verts = int(no_verts_and_edges[0])
-        no_edges = int(no_verts_and_edges[1])
         destination = int(lines.pop())
-
-        for line in lines:
-            source_and_dest = line.split()
-            source = int(source_and_dest[0])
-            dest = int(source_and_dest[1])
-
-            if source not in verts:
-                verts.append(source)
-            if dest not in verts:
-                verts.append(dest)
-
-        adj = [None]*len(verts)
 
         for line in lines:
             source_dest_weight = line.split()
@@ -35,59 +75,45 @@ def graph_from_file(path_to_file):
             dest = int(source_dest_weight[1])
             weight = int(source_dest_weight[2])
 
-            if adj[source-1] != None:
-                adj[source-1].append((dest, weight))
-            else:
-                adj[source-1] = [(dest, weight)]
+            if source not in verts:
+                verts.append(source)
+            if dest not in verts:
+                verts.append(dest)
+            edges.append(
+                [[SetElement(source, 0, 1), SetElement(dest, 0, 1)], weight])
+            edges.append(
+                [[SetElement(dest, 0, 1), SetElement(source, 0, 1)], weight])
 
-            if adj[dest-1] != None:
-                adj[dest-1].append((source, weight))
-            else:
-                adj[dest-1] = [(source, weight)]
+    return Graph(verts, edges, destination)
 
-    return Graph(verts, adj, destination)
 
-def dijkstra(graph):
-    start = graph.verts[0]
-    start_index = start - 1
+def kruskal(graph):
+    ds = DisjointSet()
+    A = []
 
-    dist = [None]*len(graph.verts)
+    for vertex in graph.verts:
+        ds.make_set(vertex)
 
-    for i in range(len(dist)):
-        dist[i] = [float("inf")]
-        dist[i].append([start])
-    
-    dist[start_index][0] = 0
-    
-    queue = [i for i in range(len(graph.verts))]
-    seen = set()
+    for item in ds.sets:
+        print(item)
 
-    while len(queue) > 0:
-        min_height = float("inf")
-        min_index = None
+    for edge in graph.edges:
+        u = edge[0][0]
+        v = edge[0][1]
 
-        for n in queue:
-            if dist[n][0] < min_height and n + 1 not in seen:
-                min_height = dist[n][0]
-                min_index = n
-                min_vert = n + 1
+        if ds.find(u) != ds.find(v):
+            A = A + [[u, v]]
+            ds.union(u, v)
 
-        queue.remove(min_index)
-        seen.add(min_vert)
+    for item in ds.sets:
+        print(item)
 
-        if graph.destination in seen:
-            print("Found")
+    return A
 
-        for (vert, weight) in graph.adj[min_index]:
-            vert_index = vert - 1
- 
-            if min_height < dist[vert_index][0]:
-                dist[vert_index][0] = min_height
-                dist[vert_index][1] = list(dist[min_index][1])
-                dist[vert_index][1].append(vert)
-
-    print(dist)
 
 if __name__ == "__main__":
-    graph = graph_from_file('./testidata/graph_testdata/graph_ADS2018_10_1.txt')
-    dijkstra(graph)
+    graph = graph_from_file(
+        './testidata/graph_testdata/graph_ADS2018_10_1.txt')
+
+    for item in kruskal(graph):
+        print(item[0], item[1])
