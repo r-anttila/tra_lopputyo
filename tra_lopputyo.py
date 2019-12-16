@@ -2,6 +2,7 @@ WHITE = 0
 GREY = 1
 BLACK = 2
 
+
 class Graph:
     def __init__(self, verts, edges, destination):
         self.verts = verts
@@ -20,7 +21,6 @@ class Graph:
                 adj_list[edge_start].append([edge_end, edge[1]])
             except KeyError:
                 adj_list[edge_start] = [[edge_end, edge[1]]]
-                
 
             try:
                 adj_list[edge_end].append([edge_start, edge[1]])
@@ -46,7 +46,6 @@ class DisjointSet:
         if self.parent[i] == i:
             return i
         return self.find(self.parent[i])
-        
 
     def union(self, x, y):
         x_root = self.find(x)
@@ -70,7 +69,7 @@ def graph_from_file(path_to_file):
 
     with open(path_to_file, 'r') as file:
         lines = file.readlines()
-        
+
         # Poistetaan ensimmäinen rivi, sillä sitä ei tarvita tässä implementoinnissa
         lines.pop(0).split()
         destination = int(lines.pop())
@@ -102,12 +101,13 @@ def kruskal(graph):
         v = edge[0][1]
 
         if ds.find(u) != ds.find(v):
-            A.append([[u,v], edge[1]])
+            A.append([[u, v], edge[1]])
             ds.union(u, v)
 
     return A
 
-def bfs(graph, start):
+
+def max_weight_with_bfs(graph, start):
     color = {}
     d = {}
     p = {}
@@ -118,7 +118,7 @@ def bfs(graph, start):
         d[u] = float("inf")
         p[u] = None
         weight[u] = 0
-    
+
     d[start] = 0
     color[start] = GREY
     queue = []
@@ -136,7 +136,8 @@ def bfs(graph, start):
         color[u] = BLACK
 
     return get_max_weight(start, graph.destination, d, p, weight)
-        
+
+
 def get_max_weight(start, dest, dist, pred, weight):
     u = dest
     weights = []
@@ -146,13 +147,15 @@ def get_max_weight(start, dest, dist, pred, weight):
             u = pred[u]
     return max(weights)
 
+
 def run(path_to_test_file):
     graph = graph_from_file(path_to_test_file)
 
     graph.edges = kruskal(graph)
     graph.adj_list = graph.generate_adj_list()
 
-    print(bfs(graph, 1))
+    print(max_weight_with_bfs(graph, 1))
+
 
 if __name__ == "__main__":
     run('./testidata/graph_large_testdata/graph_ADS2018_500.txt')

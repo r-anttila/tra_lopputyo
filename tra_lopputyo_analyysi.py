@@ -2,6 +2,8 @@ import time
 import tra_lopputyo
 import math
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy import optimize
 
 
 def calculate_runtime(n):
@@ -26,6 +28,10 @@ def calculate_large_runtime(n):
     return runtime
 
 
+def fitted_function(x, a, b, c):
+    return a + b*x + c*x**2
+
+
 if __name__ == "__main__":
     size = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     runtime = []
@@ -36,12 +42,14 @@ if __name__ == "__main__":
     for n in size:
         runtime.append(calculate_runtime(n))
 
-
     for n in large_size:
         large_runtime.append(calculate_large_runtime(n))
-    
 
-    plt.plot(size + large_size, runtime + large_runtime)
+    params, params_covariance = optimize.curve_fit(
+        fitted_function, np.ndarray(size + large_size), np.ndarray(runtime + large_runtime))
+
+    #plt.plot(size + large_size, runtime + large_runtime)
+    plt.plot(size, fitted_function(size, params[0], params[1], params[2]))
     plt.show()
     print(runtime)
     print(large_runtime)
